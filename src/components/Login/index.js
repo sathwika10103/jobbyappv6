@@ -1,50 +1,38 @@
-import {Component} from 'react'
-import Cookies from 'js-cookie'
-import {Navigate} from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react';
+import Cookies from 'js-cookie';
+import { Navigate, useNavigate } from 'react-router-dom';
+import './index.css';
 
-import './index.css'
+function LoginForm() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showSubmitError, setShowSubmitError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-class LoginForm extends Component {
-  state = {
-    username: '',
-    password: '',
-    showSubmitError: false,
-    errorMsg: '',
+  const navigate = useNavigate();
+
+  const onChangeUsername = event => {
+    setUsername(event.target.value);
   }
 
-  onChangeUsername = event => {
-    this.setState({username: event.target.value})
+  const onChangePassword = event => {
+    setPassword(event.target.value);
   }
 
-  onChangePassword = event => {
-    this.setState({password: event.target.value})
-  }
-
-  /* onSubmitSuccess = jwtToken => {
-    const {history} = this.props
-    console.log(this.props)
+  const onSubmitSuccess = jwtToken => {
     Cookies.set('jwt_token', jwtToken, {
       expires: 30,
     })
-    history.replace('/')
-  } */
-
-  onSubmitSuccess = jwtToken => {
-    Cookies.set('jwt_token', jwtToken, {
-      expires: 30,
-    })
-    const navigate=useNavigate()
-    navigate('/')
+    navigate('/');
   }
 
-  onSubmitFailure = errorMsg => {
-    this.setState({showSubmitError: true, errorMsg})
+  const onSubmitFailure = errorMsg => {
+    setShowSubmitError(true);
+    setErrorMsg(errorMsg);
   }
 
-  submitForm = async event => {
+  const submitForm = async event => {
     event.preventDefault()
-    const {username, password} = this.state
     const userDetails = {username, password}
     const url = 'https://apis.ccbp.in/login'
     const options = {
@@ -54,15 +42,13 @@ class LoginForm extends Component {
     const response = await fetch(url, options)
     const data = await response.json()
     if (response.ok === true) {
-      this.onSubmitSuccess(data.jwt_token)
+      onSubmitSuccess(data.jwt_token)
     } else {
-      this.onSubmitFailure(data.error_msg)
+      onSubmitFailure(data.error_msg)
     }
   }
 
-  renderPasswordField = () => {
-    const {password} = this.state
-
+  const renderPasswordField = () => {
     return (
       <>
         <label className="input-label" htmlFor="password">
@@ -73,16 +59,14 @@ class LoginForm extends Component {
           id="password"
           className="password-input-field"
           value={password}
-          onChange={this.onChangePassword}
+          onChange={onChangePassword}
           placeholder="Password"
         />
       </>
     )
   }
 
-  renderUsernameField = () => {
-    const {username} = this.state
-
+  const renderUsernameField = () => {
     return (
       <>
         <label className="input-label" htmlFor="username">
@@ -93,39 +77,36 @@ class LoginForm extends Component {
           id="username"
           className="username-input-field"
           value={username}
-          onChange={this.onChangeUsername}
+          onChange={onChangeUsername}
           placeholder="Username"
         />
       </>
     )
   }
 
-  render() {
-    const {showSubmitError, errorMsg} = this.state
-    const jwtToken = Cookies.get('jwt_token')
+  const jwtToken = Cookies.get('jwt_token')
 
-    if (jwtToken !== undefined) {
-      return <Navigate to="/" />
-    }
-
-    return (
-      <div className="login-form-container">
-        <form className="form-container" onSubmit={this.submitForm}>
-          <img
-            src="https://assets.ccbp.in/frontend/react-js/logo-img.png"
-            className="login-website-logo"
-            alt="website logo"
-          />
-          <div className="input-container">{this.renderUsernameField()}</div>
-          <div className="input-container">{this.renderPasswordField()}</div>
-          <button type="submit" className="login-button">
-            Login
-          </button>
-          {showSubmitError && <p className="error-message">*{errorMsg}</p>}
-        </form>
-      </div>
-    )
+  if (jwtToken !== undefined) {
+    return <Navigate to="/" replace />
   }
+
+  return (
+    <div className="login-form-container">
+      <form className="form-container" onSubmit={submitForm}>
+        <img
+          src="https://assets.ccbp.in/frontend/react-js/logo-img.png"
+          className="login-website-logo"
+          alt="website logo"
+        />
+        <div className="input-container">{renderUsernameField()}</div>
+        <div className="input-container">{renderPasswordField()}</div>
+        <button type="submit" className="login-button">
+          Login
+        </button>
+        {showSubmitError && <p className="error-message">*{errorMsg}</p>}
+      </form>
+    </div>
+  )
 }
 
-export default LoginForm
+export default LoginForm;
